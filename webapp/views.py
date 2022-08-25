@@ -3,15 +3,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Employees
 from .serializers import EmployeesSerializer
+from django.http import HttpResponse
 from django.db.models import Q
 
-class EmployeesListAPIView(APIView):
+def home(request):
+    return HttpResponse("<h1>This is Django Restful api</h1><br><p>add '/employees to the url to see data</p>")
 
-    fields = Employees.get_fieldnames()
-    allEmployees = Employees.objects.all()
-    specialChars = ["^", "%"]
+class EmployeesListAPIView(APIView):    
 
     def get(self, request):
+        allEmployees = Employees.objects.all()
         query = None
         params = [(key, value) for key, value in request.query_params.items()]
         or_ind = []
@@ -28,9 +29,9 @@ class EmployeesListAPIView(APIView):
 
             if (key == "orderby"):
                 if not query:
-                    self.allEmployees = self.allEmployees.order_by(value)
+                    allEmployees = allEmployees.order_by(value)
                 else: 
-                    self.allEmployees = self.allEmployees.filter(query).order_by(value)
+                    allEmployees = allEmployees.filter(query).order_by(value)
                 continue
 
             
@@ -67,6 +68,9 @@ class EmployeesListAPIView(APIView):
                     else:
                         key = key[:ind] + "__gte"
 
+            if (value == "null"):
+                key += "__isnull"
+                value = True
 
             q = Q(**{key:value})
 
@@ -82,9 +86,9 @@ class EmployeesListAPIView(APIView):
                     query = query & q
             
         if query:
-            self.allEmployees = self.allEmployees.filter(query)
+            allEmployees = allEmployees.filter(query)
         print(or_ind)
-        serializer = EmployeesSerializer(self.allEmployees, many=True)
+        serializer = EmployeesSerializer(allEmployees, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):

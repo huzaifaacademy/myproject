@@ -9,7 +9,3 @@ class Employees(models.Model):
     def __str__(self):
         return str(self.emp_id)
     
-    def get_fieldnames():
-        print("hy")
-        return ["firstname", "lastname", "emp_id", "phone_no"]
-    
